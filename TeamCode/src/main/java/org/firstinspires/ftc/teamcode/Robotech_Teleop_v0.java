@@ -13,6 +13,7 @@ public class Robotech_Teleop_v0 extends LinearOpMode {
     //robotech hw class, common to all opmodes
     Robotech m_robotech;
 
+
     @Override
     public void runOpMode(){
         //create all the robotech hardware instances and initialize
@@ -22,8 +23,18 @@ public class Robotech_Teleop_v0 extends LinearOpMode {
 
         while(!isStopRequested()) {
 //            m_robotech.rtDriveTrain.drive(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x, gamepad1.right_bumper);
-
-            m_robotech.rtFieldDrive.FieldDrive(gamepad1.left_stick_x, -gamepad1.left_stick_y, -gamepad1.right_stick_x, gamepad1.options);
+//
+//            m_robotech.rtFieldDrive.FieldDrive(gamepad1.left_stick_x, -gamepad1.left_stick_y, -gamepad1.right_stick_x, gamepad1.options);
+            if(gamepad1.left_bumper){
+                m_robotech.rtDriveTrain.drive(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x, gamepad1.right_bumper);
+                telemetry.addData("Robot Orientated Drive","");
+                telemetry.update();
+            }
+            else if(gamepad1.right_bumper){
+                m_robotech.rtFieldDrive.FieldDrive(gamepad1.left_stick_x, -gamepad1.left_stick_y, -gamepad1.right_stick_x, gamepad1.options);
+                telemetry.addData("Field Centric Drive","");
+                telemetry.update();
+            }
             m_robotech.rtWrist.wrist(gamepad2.y, gamepad2.a);
             m_robotech.rtLift.lift(gamepad2.left_stick_y);
             m_robotech.rtClaw.claw(gamepad2.right_bumper, gamepad2.left_bumper);
