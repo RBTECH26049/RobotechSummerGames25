@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
+
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.hardware.RtClaw;
 import org.firstinspires.ftc.teamcode.hardware.RtDrive;
@@ -18,6 +19,7 @@ import org.firstinspires.ftc.teamcode.hardware.RtFieldDrive;
 import org.firstinspires.ftc.teamcode.hardware.RtLed;
 import org.firstinspires.ftc.teamcode.hardware.RtLift;
 import org.firstinspires.ftc.teamcode.hardware.RtWrist;
+import org.firstinspires.ftc.teamcode.sensors.RTDeadWheels;
 import org.firstinspires.ftc.teamcode.sensors.RtColorSensor;
 import org.firstinspires.ftc.teamcode.sensors.RtTouchSensor;
 import org.firstinspires.ftc.teamcode.utilities.RtLog;
@@ -62,7 +64,10 @@ public class Robotech {
     private Servo m_leftWristServo;
     private Servo m_rightWristServo;
     
-    
+    // Dead Wheels
+    private DcMotor m_leftEncoder;
+    private DcMotor m_rightEncoder;
+    private DcMotor m_centerEncoder;
 
     //==========================================================
     // public attributes - caller uses these
@@ -76,6 +81,7 @@ public class Robotech {
     //sensors
     public RtTouchSensor rtTouchSensor;
     public RtColorSensor rtColorSensor;
+    public RtDeadWheels rtDeadWheels;
 
     //hardware
     public RtDrive rtDriveTrain;
@@ -112,6 +118,10 @@ public class Robotech {
         m_dtRightBackDcMotor  = m_hardwareMap.tryGet(DcMotor.class,          "RBMotor");
         m_dtRightFrontDcMotor = m_hardwareMap.tryGet(DcMotor.class,          "RFMotor");
         m_dtLeftFrontDcMotor  = m_hardwareMap.tryGet(DcMotor.class,          "LFMotor");
+
+        m_leftEncoder           =m_hardwareMap.tryGet(DcMotor.class,          "LBMotor");
+        m_rightEncoder          =m_hardwareMap.tryGet(DcMotor.class,          "RBMotor");
+        m_centerEncoder         =m_hardwareMap.tryGet(DcMotor.class,          "RFMotor");
 
         m_leftLiftDcMotor     = m_hardwareMap.tryGet(DcMotor.class,          "lift1");
         m_rightLiftDcMotor    = m_hardwareMap.tryGet(DcMotor.class,          "lift2");
@@ -153,6 +163,7 @@ public class Robotech {
         //sensors
         rtTouchSensor = new RtTouchSensor(m_touchSensor, m_telemetry);
         rtColorSensor = new RtColorSensor(m_revColorSensorV3, m_telemetry);
+        rtDeadWheels  = new RtDeadWheels(m_leftEncoder,m_rightEncoder,m_centerEncoder,m_telemetry);
 
         //hardware
         rtDriveTrain  = new RtDrive(m_dtLeftBackDcMotor, m_dtRightBackDcMotor,
