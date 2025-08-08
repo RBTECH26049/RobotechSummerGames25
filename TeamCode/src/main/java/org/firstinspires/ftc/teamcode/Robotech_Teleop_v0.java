@@ -39,6 +39,11 @@ public class Robotech_Teleop_v0 extends LinearOpMode {
             m_robotech.rtLift.lift(gamepad2.left_stick_y);
             m_robotech.rtClaw.claw(gamepad2.right_bumper, gamepad2.left_bumper);
 
+            m_robotech.rtDeadWheels.getCenterInches();
+            m_robotech.rtDeadWheels.getLeftInches();
+            m_robotech.rtDeadWheels.getCenterInches();
+            m_robotech.rtDeadWheels.updateTelemetry();
+
             if (m_robotech.rtTouchSensor.isTouched())
             {
                 m_robotech.rtLedLight.setColor(RtTypes.rtColor.GREEN);
