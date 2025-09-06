@@ -15,54 +15,65 @@ import java.util.List;
 
 public class RtCamera {
 
-    private static final boolean USE_WEBCAM = true;
-    private Telemetry m_telemetry;
-    private AprilTagProcessor aprilTagProcessor;
-    private AprilTagProcessor aprilTag;
-    private VisionPortal visionPortal;
-    private org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName m_Camera;
-
-
-    /* Copyright (c) 2024 Dryw Wade. All rights reserv
-
-        private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
-
-        /**
-         * Variables to store the position and orientation of the camera on the robot. Setting these
-         * values requires a definition of the axes of the camera and robot:
-         *
-         * Camera axes:
-         * Origin location: Center of the lens
-         * Axes orientation: +x right, +y down, +z forward (from camera's perspective)
-         *
-         * Robot axes (this is typical, but you can define this however you want):
-         * Origin location: Center of the robot at field height
-         * Axes orientation: +x right, +y forward, +z upward
-         *
-         * Position:
-         * If all values are zero (no translation), that implies the camera is at the center of the
-         * robot. Suppose your camera is positioned 5 inches to the left, 7 inches forward, and 12
-         * inches above the ground - you would need to set the position to (-5, 7, 12).
-         *
-         * Orientation:
-         * If all values are zero (no rotation), that implies the camera is pointing straight up. In
-         * most cases, you'll need to set the pitch to -90 degrees (rotation about the x-axis), meaning
-         * the camera is horizontal. Use a yaw of 0 if the camera is pointing forwards, +90 degrees if
-         * it's pointing straight left, -90 degrees for straight right, etc. You can also set the roll
-         * to +/-90 degrees if it's vertical, or 180 degrees if it's upside-down.
-         */
-    public RtCamera(org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName parCamera, Telemetry parTelemetry) {
-        m_Camera = parCamera;
-        m_telemetry = parTelemetry;
-
-
-        initAprilTag();
-
-    }
+    private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
 
     /**
-     * Initialize the AprilTag processor.
+     * Variables to store the position and orientation of the camera on the robot. Setting these
+     * values requires a definition of the axes of the camera and robot:
+     *
+     * Camera axes:
+     * Origin location: Center of the lens
+     * Axes orientation: +x right, +y down, +z forward (from camera's perspective)
+     *
+     * Robot axes (this is typical, but you can define this however you want):
+     * Origin location: Center of the robot at field height
+     * Axes orientation: +x right, +y forward, +z upward
+     *
+     * Position:
+     * If all values are zero (no translation), that implies the camera is at the center of the
+     * robot. Suppose your camera is positioned 5 inches to the left, 7 inches forward, and 12
+     * inches above the ground - you would need to set the position to (-5, 7, 12).
+     *
+     * Orientation:
+     * If all values are zero (no rotation), that implies the camera is pointing straight up. In
+     * most cases, you'll need to set the pitch to -90 degrees (rotation about the x-axis), meaning
+     * the camera is horizontal. Use a yaw of 0 if the camera is pointing forwards, +90 degrees if
+     * it's pointing straight left, -90 degrees for straight right, etc. You can also set the roll
+     * to +/-90 degrees if it's vertical, or 180 degrees if it's upside-down.
      */
+    private Position cameraPosition = new Position(DistanceUnit.INCH,
+            0, 0, 0, 0);
+    private YawPitchRollAngles cameraOrientation = new YawPitchRollAngles(AngleUnit.DEGREES,
+            0, -90, 0, 0);
+
+    /**
+     * The variable to store our instance of the AprilTag processor.
+     */
+    private AprilTagProcessor aprilTag;
+
+    /**
+     * The variable to store our instance of the vision portal.
+     */
+    private VisionPortal visionPortal;
+
+    private org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName m_cameraName;
+    private Telemetry m_telemetry;
+
+    public int m_aprilTagId = 0;
+    public String m_aprilTagName = "";
+    public double[] m_position = {0, 0, 0};
+    public double[] m_orientation = {0, 0, 0};
+
+    public RtCamera(org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName parCamName, Telemetry parTelemetry)
+    {
+        m_cameraName = parCamName;
+        m_telemetry  = parTelemetry;
+
+        if (hwExists()) {
+            initAprilTag();
+        }
+    }
+
     private void initAprilTag() {
 
         // Create the AprilTag processor.
@@ -99,7 +110,7 @@ public class RtCamera {
 
         // Set the camera (webcam vs. built-in RC phone camera).
         if (USE_WEBCAM) {
-            builder.setCamera(m_Camera);
+            builder.setCamera(m_cameraName);
         } else {
             builder.setCamera(BuiltinCameraDirection.BACK);
         }
@@ -129,46 +140,79 @@ public class RtCamera {
 
     }   // end method initAprilTag()
 
-    /**
-     * Add telemetry about AprilTag detections.
-     */
-    public void telemetryAprilTag() {
+    public void powerOnCamera(){
+        if (hwExists()) {
+            visionPortal.resumeStreaming();
+        }
+    }
 
-        List<AprilTagDetection> currentDetections = aprilTag.getDetections();
-        m_telemetry.addData("# AprilTags Detected", currentDetections.size());
+    public void powerOffCamera(){
+        if (hwExists()) {
+            visionPortal.stopStreaming();
+        }
+    }
+    public void closeCamera() {
+        if (hwExists()) {
+            visionPortal.close();
+        }
+    }
 
+    public boolean detectedAprilTag()
+    {
+        boolean isAprilTag = false;
+        if (hwExists()) {
+            List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+            //m_telemetry.addData("# AprilTags Detected", currentDetections.size());
+            if (currentDetections.size() > 0) {
+                boolean print = false;
+                readAprilTag(currentDetections, print);
+                isAprilTag = true;
+            }
+        }
+        return isAprilTag;
+    }
+
+    private void readAprilTag(List<AprilTagDetection> parDetections, boolean parPrint)
+    {
         // Step through the list of detections and display info for each one.
-        for (AprilTagDetection detection : currentDetections) {
+        for (AprilTagDetection detection : parDetections) {
             if (detection.metadata != null) {
-                m_telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));
-                m_telemetry.addLine(String.format("XYZ %6.1f %6.1f %6.1f  (inch)",
-                        detection.robotPose.getPosition().x,
-                        detection.robotPose.getPosition().y,
-                        detection.robotPose.getPosition().z));
-                m_telemetry.addLine(String.format("PRY %6.1f %6.1f %6.1f  (deg)",
-                        detection.robotPose.getOrientation().getPitch(AngleUnit.DEGREES),
-                        detection.robotPose.getOrientation().getRoll(AngleUnit.DEGREES),
-                        detection.robotPose.getOrientation().getYaw(AngleUnit.DEGREES)));
-            } else {
-                m_telemetry.addLine(String.format("\n==== (ID %d) Unknown", detection.id));
-                m_telemetry.addLine(String.format("Center %6.0f %6.0f   (pixels)", detection.center.x, detection.center.y));
+                m_aprilTagId = detection.id;
+                m_aprilTagName = detection.metadata.name;
+                m_position[0] = detection.robotPose.getPosition().x;
+                m_position[1] = detection.robotPose.getPosition().y;
+                m_position[2] = detection.robotPose.getPosition().z;
+                m_orientation[0] = detection.robotPose.getOrientation().getYaw(AngleUnit.DEGREES);
+                m_orientation[1] = detection.robotPose.getOrientation().getPitch(AngleUnit.DEGREES);
+                m_orientation[2] = detection.robotPose.getOrientation().getRoll(AngleUnit.DEGREES);
+
+                if (parPrint) {
+                    m_telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));
+                    m_telemetry.addLine(String.format("XYZ %6.1f %6.1f %6.1f  (inch)",
+                            detection.robotPose.getPosition().x,
+                            detection.robotPose.getPosition().y,
+                            detection.robotPose.getPosition().z));
+                    m_telemetry.addLine(String.format("PRY %6.1f %6.1f %6.1f  (deg)",
+                            detection.robotPose.getOrientation().getPitch(AngleUnit.DEGREES),
+                            detection.robotPose.getOrientation().getRoll(AngleUnit.DEGREES),
+                            detection.robotPose.getOrientation().getYaw(AngleUnit.DEGREES)));
+                }
             }
         }   // end for() loop
 
-        // Add "key" information to telemetry
-        m_telemetry.addLine("\nkey:\nXYZ = X (Right), Y (Forward), Z (Up) dist.");
-        m_telemetry.addLine("PRY = Pitch, Roll & Yaw (XYZ Rotation)");
+        if (parPrint) {
+            m_telemetry.update();
+        }
+    }
 
-    }   // end method telemetryAprilTag()
-
-    private Position cameraPosition = new Position(DistanceUnit.INCH,
-            0, 0, 0, 0);
-    private YawPitchRollAngles cameraOrientation = new YawPitchRollAngles(AngleUnit.DEGREES,
-            0, -90, 0, 0);
-
-
-
+    private boolean hwExists() {
+        boolean exists = true;
+        if (m_cameraName == null)
+        {
+            exists = false;
+            m_telemetry.addLine("RtCamera HW NOT CONNECTED");
+            m_telemetry.update();
+        }
+        return exists;
+    }
 }
-
-
-

@@ -24,16 +24,18 @@ public class Robotech_Auton_v0 extends LinearOpMode {
 
         //run auton...
         while(!isStopRequested() && opModeIsActive()) {
-            m_robotech.rtCamera.telemetryAprilTag();
+            m_robotech.rtCamera.detectedAprilTag();
             //go to observation zone
-            if (m_robotech.rtTouchSensor.isTouched())
-            {
-                m_robotech.rtLedLight.setColor(RtTypes.rtColor.GREEN);
-            }
-            else
-            {
-                m_robotech.rtLedLight.setColor(RtTypes.rtColor.OFF);
-            }
+//            if (m_robotech.rtTouchSensor.isTouched())
+//            {
+//                m_robotech.rtLedLight.setColor(RtTypes.rtColor.GREEN);
+//            }
+//            else
+//            {
+//                m_robotech.rtLedLight.setColor(RtTypes.rtColor.OFF);
+//            }
+            sleep(100);
+            telemetry.update();
         }
     }
 }
