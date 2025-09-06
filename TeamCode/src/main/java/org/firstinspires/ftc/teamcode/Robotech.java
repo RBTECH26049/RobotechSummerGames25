@@ -12,12 +12,14 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.hardware.RtClaw;
 import org.firstinspires.ftc.teamcode.hardware.RtDrive;
 import org.firstinspires.ftc.teamcode.hardware.RtFieldDrive;
 import org.firstinspires.ftc.teamcode.hardware.RtLed;
 import org.firstinspires.ftc.teamcode.hardware.RtLift;
 import org.firstinspires.ftc.teamcode.hardware.RtWrist;
+import org.firstinspires.ftc.teamcode.sensors.RtCamera;
 import org.firstinspires.ftc.teamcode.sensors.RtColorSensor;
 import org.firstinspires.ftc.teamcode.sensors.RtTouchSensor;
 import org.firstinspires.ftc.teamcode.utilities.RtLog;
@@ -42,6 +44,8 @@ public class Robotech {
     // sensors
     private TouchSensor m_touchSensor;
     private RevColorSensorV3 m_revColorSensorV3;
+    private org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName  m_cameraName;
+
 
     // drive train motors
     private DcMotor m_dtLeftBackDcMotor;
@@ -61,7 +65,8 @@ public class Robotech {
     private Servo m_rightClawServo;
     private Servo m_leftWristServo;
     private Servo m_rightWristServo;
-    
+
+
     
 
     //==========================================================
@@ -76,6 +81,8 @@ public class Robotech {
     //sensors
     public RtTouchSensor rtTouchSensor;
     public RtColorSensor rtColorSensor;
+    public RtCamera      rtCamera;
+
 
     //hardware
     public RtDrive rtDriveTrain;
@@ -107,6 +114,8 @@ public class Robotech {
         m_touchSensor         = m_hardwareMap.tryGet(TouchSensor.class,      "digTouchP01");
         m_revColorSensorV3    = m_hardwareMap.tryGet(RevColorSensorV3.class, "i2cColorP1");
 
+        m_cameraName          = m_hardwareMap.tryGet(WebcamName.class, "Cam");
+
         //all the device names below need to be improved and should include the control/expansion hub port!!!
         m_dtLeftBackDcMotor   = m_hardwareMap.tryGet(DcMotor.class,          "LBMotor");
         m_dtRightBackDcMotor  = m_hardwareMap.tryGet(DcMotor.class,          "RBMotor");
@@ -124,6 +133,8 @@ public class Robotech {
 
         m_leftWristServo      = m_hardwareMap.tryGet(Servo.class,            "leftWrist");
         m_rightWristServo     = m_hardwareMap.tryGet(Servo.class,            "rightWrist");
+
+        m_cameraName = m_hardwareMap.tryGet(WebcamName.class, "Cam");
     }
 
     private void configureRobotechDriveTrain()
@@ -153,6 +164,7 @@ public class Robotech {
         //sensors
         rtTouchSensor = new RtTouchSensor(m_touchSensor, m_telemetry);
         rtColorSensor = new RtColorSensor(m_revColorSensorV3, m_telemetry);
+        rtCamera      = new RtCamera(m_cameraName,m_telemetry);
 
         //hardware
         rtDriveTrain  = new RtDrive(m_dtLeftBackDcMotor, m_dtRightBackDcMotor,
